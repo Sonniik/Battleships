@@ -4,6 +4,13 @@ tput smcup #saves and yeets the terminal
 parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P ) #get script directory
 pushd "$parent_path" > /dev/null #continue in script directory (noecho)
 
+trap cleanexit INT
+cleanexit() {
+	popd > /dev/null #leave script directory (noecho)
+	tput rmcup #yeets battleships and restores terminal
+	exit
+}
+
 #=====	Battlefield		=====
 # asign field positions to asciiart positions
 # letters -> 3+4*position in alphabet (starting at 0)
