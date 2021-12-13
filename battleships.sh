@@ -1,3 +1,4 @@
+
 #!/bin/bash
 
 tput smcup #saves and yeets the terminal
@@ -74,6 +75,8 @@ done
 columns=('A' 'B' 'C' 'D' 'E' 'F' 'G' 'H' 'I')
 attemptsleft=$((${shipsize[total]}*2))
 victory=false
+score=0
+maxscore=$((${shipsize[total]}))
 
 #=====	Functions		=====
 
@@ -97,7 +100,7 @@ shotrow=''
 getshotcoords () {
 	correctvalue=false
 	while [ "$correctvalue" = false ]; do
-		printf "\33[%d;%dH%s" "21" "10"
+		printf "\33[%d;%dH%s" "21" "11"
 		read usershotcoords
 		shotcoords=${usershotcoords^}
 		if [[ "${#shotcoords}" = 2 ]]; then
@@ -114,10 +117,10 @@ getshotcoords () {
 			done
 		fi
 		if [[ "$correctvalue" = false ]]; then
-			printf "\33[%d;%dH%s" "21" "10" "Invalid Remaining attempts: $attemptsleft   "
+			printf "\33[%d;%dH%s" "21" "0" "Shoot at: Invalid Remaining attempts: $attemptsleft   "
 			sleep 1
-			printf "\33[%d;%dH%s" "21" "10" "       "
-			printf "\33[%d;%dH%s" "21" "10"
+			printf "\33[%d;%dH%s" "21" "0" "Shoot at:        "
+			printf "\33[%d;%dH%s" "21" "11"
 		fi
 	done
 	attemptsleft=$(($attemptsleft-1))
@@ -125,9 +128,13 @@ getshotcoords () {
 	printf "\33[%d;%dH%s" "21" "10" "        Remaining attempts: $attemptsleft   "
 }
 
+printscore () {
+	percentageshot=$(echo "scale=3; $score / $maxscore * 100" | bc) && decimal=${percentageshot#*.} && percentageshot=${percentageshot%.*}.${decimal::1} && [[ ${#percentageshot} = 4 ]] && printf "\33[%d;%dH%s" "16" "53" "$percentageshot %" || printf "\33[%d;%dH%s" "16" "54" "$percentageshot %"
+}
+
 shoot () {
 	[[ ${battlefield[$shotcolumn,$shotrow]} = 0 ]] && battlefield[$shotcolumn,$shotrow]='water' && printf "\33[%d;%dH%s" "$((3+2*($shotrow-1)))" "$((3+4*($shotcolumn-1)))" "~"
-	[[ ${battlefield[$shotcolumn,$shotrow]} = 1 ]] && battlefield[$shotcolumn,$shotrow]='hit' && printf "\33[%d;%dH%s" "$((3+2*($shotrow-1)))" "$((3+4*($shotcolumn-1)))" "¤"
+	[[ ${battlefield[$shotcolumn,$shotrow]} = 1 ]] && battlefield[$shotcolumn,$shotrow]='hit' && printf "\33[%d;%dH%s" "$((3+2*($shotrow-1)))" "$((3+4*($shotcolumn-1)))" "¤" && score=$(($score+1)) && printscore
 }
 
 deadcheck () {
@@ -151,7 +158,7 @@ deadcheck () {
 carriageup
 sed -n -e 1,21p battleships.txt && printf "\33[%d;%dH%s" "21" "38" "$attemptsleft"
 for theshipsize in {1..5}; do
-	printf "\33[%d;%dH%s" "$((5+2*($theshipsize-1)))" "55" "${shipsize[$theshipsize]}"
+	printf "\33[%d;%dH%s" "$((5+2*($theshipsize-1)))" "58" "${shipsize[$theshipsize]}"
 done
 #the field is print, now the game loop
 while [ $attemptsleft -ne 0 ]; do
